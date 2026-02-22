@@ -30,6 +30,7 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly StandingStateSystem _standing = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
 
     public override void Initialize()
@@ -286,6 +287,7 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
             container.Contains(uid))
         {
             _container.Remove(uid, container, reparent: true, force: true);
+            _transform.AttachToGridOrMap(uid);
         }
 
         if (TryComp<InputMoverComponent>(uid, out var mover))
@@ -439,18 +441,20 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
         Entity<VentCrawlableComponent> from,
         Entity<VentCrawlableComponent> to)
     {
+        var toXform = Transform(to.Owner);
+        if (toXform.GridUid == null && toXform.MapUid == null)
+            return;
+
         var fromContainer = _container.EnsureContainer<Container>(from, from.Comp.ContainerId);
         var toContainer = _container.EnsureContainer<Container>(to, to.Comp.ContainerId);
 
         if (!fromContainer.Contains(uid))
             return;
 
-        _container.Remove(uid, fromContainer, reparent: false, force: true);
         if (!_container.Insert(uid, toContainer))
-        {
-            _container.Insert(uid, fromContainer);
             return;
-        }
+
+        _transform.AttachToGridOrMap(uid);
 
         crawling.CurrentNode = to;
         Dirty(uid, crawling);
