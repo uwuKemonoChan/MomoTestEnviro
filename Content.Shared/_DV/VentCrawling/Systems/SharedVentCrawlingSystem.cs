@@ -204,7 +204,10 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
 
         var nodeContainer = _container.EnsureContainer<Container>(node, nodeComp.ContainerId);
         if (!_container.Insert(uid, nodeContainer))
+        {
+            RemComp<VentCrawlingComponent>(uid);
             return false;
+        }
 
         if (mover != null)
         {
@@ -258,7 +261,8 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
 
         if (ventCrawling.CurrentNode is { } node &&
             TryComp<VentCrawlableComponent>(node, out var nodeComp) &&
-            _container.TryGetContainer(node, nodeComp.ContainerId, out var container))
+            _container.TryGetContainer(node, nodeComp.ContainerId, out var container) &&
+            container.Contains(uid))
         {
             _container.Remove(uid, container, reparent: true, force: true);
         }
@@ -416,6 +420,9 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
     {
         var fromContainer = _container.EnsureContainer<Container>(from, from.Comp.ContainerId);
         var toContainer = _container.EnsureContainer<Container>(to, to.Comp.ContainerId);
+
+        if (!fromContainer.Contains(uid))
+            return;
 
         _container.Remove(uid, fromContainer, reparent: false, force: true);
         if (!_container.Insert(uid, toContainer))
