@@ -1,6 +1,5 @@
 using Robust.Shared.GameStates;
 using Robust.Shared.Maths;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 
 namespace Content.Shared._DV.VentCrawling.Components;
 
@@ -19,6 +18,6 @@ public sealed partial class VentCrawlableComponent : Component
     /// <summary>
     /// Directions that can be traversed from this node.
     /// </summary>
-    [DataField(customTypeSerializer: typeof(FlagSerializer<Direction>)), AutoNetworkedField]
+    [DataField, AutoNetworkedField]
     public Direction Connections = Direction.Invalid;
 }
