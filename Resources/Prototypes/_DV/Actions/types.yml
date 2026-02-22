@@ -48,6 +48,20 @@
 
 - type: entity
   parent: BaseAction
+  id: ActionVentCrawlExit
+  name: Exit vent crawl
+  description: Leave the vent network.
+  components:
+  - type: Action
+    itemIconStyle: BigAction
+    icon:
+      sprite: _L5/Actions/sneak.rsi
+      state: stand
+  - type: InstantAction
+    event: !type:VentExitActionEvent
+
+- type: entity
+  parent: BaseAction
   id: ActionChitzite
   name: Cough Up Chitzite
   description: Purge the excess radiation build-up from your body, and gain a cool danger rock.
