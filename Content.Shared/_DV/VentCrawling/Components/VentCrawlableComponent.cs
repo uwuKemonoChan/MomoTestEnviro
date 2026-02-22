@@ -1,5 +1,6 @@
 using Robust.Shared.GameStates;
 using Robust.Shared.Maths;
+using Robust.Shared.ViewVariables;
 
 namespace Content.Shared._DV.VentCrawling.Components;
 
@@ -16,8 +17,8 @@ public sealed partial class VentCrawlableComponent : Component
     public string ContainerId = "VentCrawlingContainer";
 
     /// <summary>
-    /// Directions that can be traversed from this node.
+    /// Runtime-generated directions that can be traversed from this node.
     /// </summary>
-    [DataField, AutoNetworkedField]
+    [ViewVariables, AutoNetworkedField]
     public Direction Connections = Direction.Invalid;
 }

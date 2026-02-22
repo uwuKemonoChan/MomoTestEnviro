@@ -14,10 +14,18 @@ namespace Content.Shared._DV.VentCrawling.Systems;
 
 /// <summary>
 /// Shared lifecycle management for vent crawling state.
-/// Traversal is intentionally not implemented in this scaffold.
+/// Includes enter/exit workflow and single-step adjacent traversal.
 /// </summary>
 public sealed class SharedVentCrawlingSystem : EntitySystem
 {
+    private static readonly Direction[] CardinalDirections =
+    [
+        Direction.North,
+        Direction.East,
+        Direction.South,
+        Direction.West
+    ];
+
     [Dependency] private readonly SharedActionsSystem _actions = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly StandingStateSystem _standing = default!;
@@ -29,6 +37,9 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<VentCrawlerComponent, MapInitEvent>(OnCrawlerMapInit);
+        SubscribeLocalEvent<VentCrawlableComponent, MapInitEvent>(OnNodeMapInit);
+        SubscribeLocalEvent<VentCrawlableComponent, AnchorStateChangedEvent>(OnNodeAnchorChanged);
+        SubscribeLocalEvent<VentCrawlableComponent, ComponentShutdown>(OnNodeShutdown);
         SubscribeLocalEvent<VentCrawlableComponent, InteractHandEvent>(OnVentInteractHand);
         SubscribeLocalEvent<VentCrawlerComponent, VentExitActionEvent>(OnVentExitAction);
         SubscribeLocalEvent<VentCrawlableComponent, VentEnterDoAfterEvent>(OnVentEnterDoAfter);
@@ -43,6 +54,21 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
 
         _actions.AddAction(ent, ref ent.Comp.ExitActionEntity, ent.Comp.ExitAction);
         _actions.SetEnabled(ent.Comp.ExitActionEntity, false);
+    }
+
+    private void OnNodeMapInit(Entity<VentCrawlableComponent> ent, ref MapInitEvent args)
+    {
+        RefreshConnectionsAround(ent);
+    }
+
+    private void OnNodeAnchorChanged(Entity<VentCrawlableComponent> ent, ref AnchorStateChangedEvent args)
+    {
+        RefreshConnectionsAround(ent);
+    }
+
+    private void OnNodeShutdown(Entity<VentCrawlableComponent> ent, ref ComponentShutdown args)
+    {
+        RefreshConnectionsAround(ent);
     }
 
     private void OnVentInteractHand(Entity<VentCrawlableComponent> ent, ref InteractHandEvent args)
@@ -299,19 +325,40 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
         if (offset == Vector2i.Zero)
             return false;
 
-        var target = Transform(node.Owner).Coordinates.Offset(offset);
+        if (!TryGetAdjacentNodeRaw(node.Owner, direction, out adjacentUid, out adjacentComp))
+            return false;
+
+        // Must allow entry from opposite direction.
+        return (adjacentComp.Connections & direction.GetOpposite()) != 0;
+    }
+
+    private void RefreshConnectionsAround(Entity<VentCrawlableComponent> center)
+    {
+        RecalculateConnections(center);
+
+        foreach (var direction in CardinalDirections)
+        {
+            if (!TryGetAdjacentNodeRaw(center.Owner, direction, out var adjacentUid, out var adjacentComp))
+                continue;
+
+            RecalculateConnections((adjacentUid, adjacentComp));
+        }
+    }
+
+    private bool TryGetAdjacentNodeRaw(EntityUid uid, Direction direction, out EntityUid adjacentUid, out VentCrawlableComponent adjacentComp)
+    {
+        adjacentUid = default;
+        adjacentComp = default!;
+
+        var target = Transform(uid).Coordinates.Offset(direction.ToVec());
         var entities = _lookup.GetEntitiesInRange(target, 0.2f);
 
         foreach (var entity in entities)
         {
-            if (entity == node.Owner)
+            if (entity == uid)
                 continue;
 
             if (!TryComp<VentCrawlableComponent>(entity, out var comp))
-                continue;
-
-            // Must allow entry from opposite direction.
-            if ((comp.Connections & direction.GetOpposite()) == 0)
                 continue;
 
             adjacentUid = entity;
@@ -320,6 +367,46 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
         }
 
         return false;
+    }
+
+    private void RecalculateConnections(Entity<VentCrawlableComponent> node)
+    {
+        if (!Transform(node).Anchored)
+        {
+            if (node.Comp.Connections != Direction.Invalid)
+            {
+                node.Comp.Connections = Direction.Invalid;
+                Dirty(node);
+            }
+
+            return;
+        }
+
+        var nextConnections = Direction.Invalid;
+
+        foreach (var direction in CardinalDirections)
+        {
+            var target = Transform(node.Owner).Coordinates.Offset(direction.ToVec());
+            var entities = _lookup.GetEntitiesInRange(target, 0.2f);
+
+            foreach (var entity in entities)
+            {
+                if (entity == node.Owner)
+                    continue;
+
+                if (!TryComp<VentCrawlableComponent>(entity, out var other) || !Transform(entity).Anchored)
+                    continue;
+
+                nextConnections |= direction;
+                break;
+            }
+        }
+
+        if (node.Comp.Connections == nextConnections)
+            return;
+
+        node.Comp.Connections = nextConnections;
+        Dirty(node);
     }
 
     private void TransferNode(EntityUid uid,
