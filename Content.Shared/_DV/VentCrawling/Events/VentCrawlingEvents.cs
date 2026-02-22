@@ -1,4 +1,5 @@
 using Content.Shared.DoAfter;
+using Content.Shared.Actions;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._DV.VentCrawling.Events;
@@ -23,3 +24,8 @@ public sealed partial class VentEnterDoAfterEvent : SimpleDoAfterEvent;
 /// </summary>
 [Serializable, NetSerializable]
 public sealed partial class VentExitDoAfterEvent : SimpleDoAfterEvent;
+
+/// <summary>
+/// Action event used to request vent crawl exit.
+/// </summary>
+public sealed partial class VentExitActionEvent : InstantActionEvent;

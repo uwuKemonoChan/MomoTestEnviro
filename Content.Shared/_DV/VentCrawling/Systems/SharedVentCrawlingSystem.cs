@@ -1,5 +1,8 @@
 using Content.Shared._DV.VentCrawling.Components;
 using Content.Shared._DV.VentCrawling.Events;
+using Content.Shared.Actions;
+using Content.Shared.DoAfter;
+using Content.Shared.Interaction;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Movement.Components;
 using Content.Shared.Standing;
@@ -15,6 +18,8 @@ namespace Content.Shared._DV.VentCrawling.Systems;
 /// </summary>
 public sealed class SharedVentCrawlingSystem : EntitySystem
 {
+    [Dependency] private readonly SharedActionsSystem _actions = default!;
+    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly StandingStateSystem _standing = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
@@ -23,7 +28,89 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
     {
         base.Initialize();
 
+        SubscribeLocalEvent<VentCrawlerComponent, MapInitEvent>(OnCrawlerMapInit);
+        SubscribeLocalEvent<VentCrawlableComponent, InteractHandEvent>(OnVentInteractHand);
+        SubscribeLocalEvent<VentCrawlerComponent, VentExitActionEvent>(OnVentExitAction);
+        SubscribeLocalEvent<VentCrawlableComponent, VentEnterDoAfterEvent>(OnVentEnterDoAfter);
+        SubscribeLocalEvent<VentCrawlerComponent, VentExitDoAfterEvent>(OnVentExitDoAfter);
         SubscribeLocalEvent<VentCrawlingComponent, ComponentShutdown>(OnVentCrawlingShutdown);
+    }
+
+    private void OnCrawlerMapInit(Entity<VentCrawlerComponent> ent, ref MapInitEvent args)
+    {
+        if (ent.Comp.ExitActionEntity != null)
+            return;
+
+        _actions.AddAction(ent, ref ent.Comp.ExitActionEntity, ent.Comp.ExitAction);
+        _actions.SetEnabled(ent.Comp.ExitActionEntity, false);
+    }
+
+    private void OnVentInteractHand(Entity<VentCrawlableComponent> ent, ref InteractHandEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        if (!TryComp<VentCrawlerComponent>(args.User, out var crawler))
+            return;
+
+        if (HasComp<VentCrawlingComponent>(args.User))
+            return;
+
+        var doAfter = new DoAfterArgs(EntityManager,
+            args.User,
+            crawler.EnterDelay,
+            new VentEnterDoAfterEvent(),
+            ent,
+            target: ent,
+            used: args.User)
+        {
+            BreakOnMove = true,
+            NeedHand = true
+        };
+
+        if (_doAfter.TryStartDoAfter(doAfter))
+            args.Handled = true;
+    }
+
+    private void OnVentEnterDoAfter(Entity<VentCrawlableComponent> ent, ref VentEnterDoAfterEvent args)
+    {
+        if (args.Handled || args.Cancelled)
+            return;
+
+        if (!TryActivate(args.Args.User, ent))
+            return;
+
+        args.Handled = true;
+    }
+
+    private void OnVentExitAction(Entity<VentCrawlerComponent> ent, ref VentExitActionEvent args)
+    {
+        if (args.Handled || !HasComp<VentCrawlingComponent>(ent))
+            return;
+
+        var doAfter = new DoAfterArgs(EntityManager,
+            ent,
+            ent.Comp.ExitDelay,
+            new VentExitDoAfterEvent(),
+            ent,
+            target: ent,
+            used: ent)
+        {
+            BreakOnMove = true,
+            NeedHand = false
+        };
+
+        if (_doAfter.TryStartDoAfter(doAfter))
+            args.Handled = true;
+    }
+
+    private void OnVentExitDoAfter(Entity<VentCrawlerComponent> ent, ref VentExitDoAfterEvent args)
+    {
+        if (args.Handled || args.Cancelled)
+            return;
+
+        if (TryDeactivate(ent, ent.Comp))
+            args.Handled = true;
     }
 
     public override void Update(float frameTime)
@@ -100,6 +187,9 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
             Dirty(uid, mover);
         }
 
+        _actions.SetEnabled(crawler.ExitActionEntity, true);
+        _actions.SetToggled(crawler.ExitActionEntity, true);
+
         if (crawler.ForceDownOnEnter && TryComp<StandingStateComponent>(uid, out var standing))
         {
             comp.PreviousStanding = standing.Standing;
@@ -156,6 +246,12 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
         if (crawler?.ForceStandOnExit == true && ventCrawling.PreviousStanding == true)
         {
             _standing.Stand(uid, force: true);
+        }
+
+        if (crawler != null)
+        {
+            _actions.SetEnabled(crawler.ExitActionEntity, false);
+            _actions.SetToggled(crawler.ExitActionEntity, false);
         }
 
         ventCrawling.CurrentNode = null;

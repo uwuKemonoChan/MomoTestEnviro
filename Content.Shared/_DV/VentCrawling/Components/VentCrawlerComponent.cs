@@ -1,4 +1,5 @@
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._DV.VentCrawling.Components;
 
@@ -8,6 +9,18 @@ namespace Content.Shared._DV.VentCrawling.Components;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class VentCrawlerComponent : Component
 {
+    /// <summary>
+    /// Action prototype used to exit vent crawling.
+    /// </summary>
+    [DataField]
+    public EntProtoId ExitAction = "ActionVentCrawlExit";
+
+    /// <summary>
+    /// Runtime entity for the exit action.
+    /// </summary>
+    [DataField]
+    public EntityUid? ExitActionEntity;
+
     /// <summary>
     /// Delay before entering vents.
     /// </summary>
