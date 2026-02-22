@@ -79,8 +79,29 @@ public sealed class SharedVentCrawlingSystem : EntitySystem
         if (!TryComp<VentCrawlerComponent>(args.User, out var crawler))
             return;
 
-        if (HasComp<VentCrawlingComponent>(args.User))
+        if (TryComp<VentCrawlingComponent>(args.User, out var ventCrawling))
+        {
+            // Allow interacting with your current vent node to exit.
+            if (ventCrawling.CurrentNode != ent)
+                return;
+
+            var exitDoAfter = new DoAfterArgs(EntityManager,
+                args.User,
+                crawler.ExitDelay,
+                new VentExitDoAfterEvent(),
+                args.User,
+                target: args.User,
+                used: args.User)
+            {
+                BreakOnMove = true,
+                NeedHand = false
+            };
+
+            if (_doAfter.TryStartDoAfter(exitDoAfter))
+                args.Handled = true;
+
             return;
+        }
 
         var doAfter = new DoAfterArgs(EntityManager,
             args.User,
