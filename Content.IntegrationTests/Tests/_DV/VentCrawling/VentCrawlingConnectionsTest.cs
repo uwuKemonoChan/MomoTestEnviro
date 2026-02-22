@@ -29,14 +29,14 @@ public sealed class VentCrawlingConnectionsTest
             mapSys.CreateMap(out var mapId);
             var grid = mapMan.CreateGrid(mapId);
 
-            ventA = entMan.SpawnAtPosition(null, new EntityCoordinates(grid, Vector2.Zero));
-            ventB = entMan.SpawnAtPosition(null, new EntityCoordinates(grid, new Vector2(1, 0)));
+            ventA = entMan.SpawnAtPosition(null, new EntityCoordinates(grid.Owner, Vector2.Zero));
+            ventB = entMan.SpawnAtPosition(null, new EntityCoordinates(grid.Owner, new Vector2(1, 0)));
 
             entMan.EnsureComponent<VentCrawlableComponent>(ventA);
             entMan.EnsureComponent<VentCrawlableComponent>(ventB);
 
-            xform.SetAnchored(ventA, true);
-            xform.SetAnchored(ventB, true);
+            xform.AnchorEntity(ventA, entMan.GetComponent<TransformComponent>(ventA));
+            xform.AnchorEntity(ventB, entMan.GetComponent<TransformComponent>(ventB));
         });
 
         await server.WaitRunTicks(2);
@@ -73,14 +73,14 @@ public sealed class VentCrawlingConnectionsTest
             mapSys.CreateMap(out var mapId);
             var grid = mapMan.CreateGrid(mapId);
 
-            ventA = entMan.SpawnAtPosition(null, new EntityCoordinates(grid, Vector2.Zero));
-            ventB = entMan.SpawnAtPosition(null, new EntityCoordinates(grid, new Vector2(2, 0)));
+            ventA = entMan.SpawnAtPosition(null, new EntityCoordinates(grid.Owner, Vector2.Zero));
+            ventB = entMan.SpawnAtPosition(null, new EntityCoordinates(grid.Owner, new Vector2(2, 0)));
 
             entMan.EnsureComponent<VentCrawlableComponent>(ventA);
             entMan.EnsureComponent<VentCrawlableComponent>(ventB);
 
-            xform.SetAnchored(ventA, true);
-            xform.SetAnchored(ventB, true);
+            xform.AnchorEntity(ventA, entMan.GetComponent<TransformComponent>(ventA));
+            xform.AnchorEntity(ventB, entMan.GetComponent<TransformComponent>(ventB));
         });
 
         await server.WaitRunTicks(2);
