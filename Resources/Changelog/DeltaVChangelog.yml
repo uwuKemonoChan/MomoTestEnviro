@@ -1,12 +1,4 @@
 ﻿Entries:
-- author: rebe83
-  changes:
-  - message: Bottles, vials, and chem injectors no longer fit inside cigarette boxes.
-      Use a combat kit like the rest of us!
-    type: Tweak
-  id: 2147
-  time: '2026-03-01T14:12:59.0000000+00:00'
-  url: https://github.com/DeltaV-Station/Delta-v/pull/5402
 - author: Stxcking
   changes:
   - message: Health analyzer can show who claimed a patient.
@@ -4441,4 +4433,11 @@
   id: 2647
   time: '2026-08-28T23:54:33.0000000+00:00'
   url: https://github.com/DeltaV-Station/Delta-v/pull/6440
+- author: BriBrooo
+  changes:
+  - message: Hydroponics' booklet on reagents contained an error.
+    type: Fix
+  id: 2648
+  time: '2026-09-06T23:35:52.0000000+00:00'
+  url: https://github.com/DeltaV-Station/Delta-v/pull/6483
 Order: 1
