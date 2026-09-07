@@ -1,11 +1,4 @@
 ﻿Entries:
-- author: Stxcking
-  changes:
-  - message: Health analyzer can show who claimed a patient.
-    type: Tweak
-  id: 2148
-  time: '2026-03-01T19:47:57.0000000+00:00'
-  url: https://github.com/DeltaV-Station/Delta-v/pull/5110
 - author: pootslap
   changes:
   - message: Rat servants are slightly faster but weaker.
@@ -4440,4 +4433,11 @@
   id: 2648
   time: '2026-09-06T23:35:52.0000000+00:00'
   url: https://github.com/DeltaV-Station/Delta-v/pull/6483
+- author: nlaky
+  changes:
+  - message: Vulp alt tail can now wag
+    type: Tweak
+  id: 2649
+  time: '2026-09-07T00:17:23.0000000+00:00'
+  url: https://github.com/DeltaV-Station/Delta-v/pull/6480
 Order: 1
