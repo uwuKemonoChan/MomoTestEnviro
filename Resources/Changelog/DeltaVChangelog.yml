@@ -1,22 +1,4 @@
 ﻿Entries:
-- author: pootslap
-  changes:
-  - message: Rat servants are slightly faster but weaker.
-    type: Tweak
-  - message: Rat Kings have a few new titles and are now more clearly labelled as
-      antagonists.
-    type: Tweak
-  id: 2149
-  time: '2026-03-02T17:48:25.0000000+00:00'
-  url: https://github.com/DeltaV-Station/Delta-v/pull/5326
-- author: JoulesBerg
-  changes:
-  - message: Vents, air injectors, and pumps can be pipes in their alternate configurations
-      now.
-    type: Add
-  id: 2150
-  time: '2026-03-02T18:17:30.0000000+00:00'
-  url: https://github.com/DeltaV-Station/Delta-v/pull/5372
 - author: Halo3moth
   changes:
   - message: Hos has a new robe for a significant aura increase, amazing sprites by
@@ -4440,4 +4422,25 @@
   id: 2649
   time: '2026-09-07T00:17:23.0000000+00:00'
   url: https://github.com/DeltaV-Station/Delta-v/pull/6480
+- author: Macrocosm, Stxcking
+  changes:
+  - message: Added 20+ new Thaven markings, most notably, tails!
+    type: Add
+  - message: Thavens can select their undergarments again.
+    type: Fix
+  - message: Thaven markings display the correct locale marking name.
+    type: Fix
+  - message: Thavens have unique organ sprites now.
+    type: Tweak
+  id: 2650
+  time: '2026-09-07T00:18:45.0000000+00:00'
+  url: https://github.com/DeltaV-Station/Delta-v/pull/6162
+- author: AnimatorBrie
+  changes:
+  - message: Added surplus boots, a strictly-cosmetic variant of jackboots. Available
+      now at your local Clothesmate vendor.
+    type: Add
+  id: 2651
+  time: '2026-09-07T00:33:43.0000000+00:00'
+  url: https://github.com/DeltaV-Station/Delta-v/pull/6472
 Order: 1
